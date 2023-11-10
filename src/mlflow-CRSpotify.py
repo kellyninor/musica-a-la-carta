@@ -9,6 +9,9 @@ Created on Fri Nov 11 21:02:20 2023
 # Importe el conjunto de datos de diabetes y divídalo en entrenamiento y prueba usando scikit-learn
 import pandas as pd
 import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.decomposition import TruncatedSVD
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 
 # Importar data
 df = pd.read_csv("df_spotify.csv", sep='|')
@@ -40,3 +43,34 @@ def average_relevance_score(recommendations, attribute_weights):
 
     average_relevance = total_relevance / total_weight
     return average_relevance
+
+# Modelo
+def custom_recommendation_model(df, generos_usuario, seleccion_usuario, n_components, scaling_method, top_n):
+    
+    subset_df = df[(df['genero_principal'].isin(generos_usuario)) | (df['sentimiento'] == seleccion_usuario)]
+    atributos_deseados = ['valence', 'year', 'acousticness', 'danceability', 'energy', 'explicit',
+                         'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', 'tempo']
+    
+    atributos = subset_df[atributos_deseados].values
+    
+    # Aplicar el escalado
+    if scaling_method == "StandardScaler":
+        scaler = StandardScaler()
+        atributos = scaler.fit_transform(atributos)
+    elif scaling_method == "MinMaxScaler":
+        scaler = MinMaxScaler()
+        atributos = scaler.fit_transform(atributos)
+    elif scaling_method == "RobustScaler":
+        scaler = RobustScaler()
+        atributos = scaler.fit_transform(atributos)
+    
+    # Reducción de dimensionalidad (SVD)
+    # n_components = min(n_components, min(atributos.shape) - 1)
+    svd = TruncatedSVD(n_components=n_components)
+    atributos_latentes = svd.fit_transform(atributos)
+    
+    similitud = cosine_similarity(atributos_latentes) if n_components < min(atributos.shape) else cosine_similarity(atributos)
+    indices_recomendaciones = similitud.sum(axis=0).argsort()[::-1]
+    recomendaciones = subset_df.iloc[indices_recomendaciones].head(top_n)
+    
+    return recomendaciones
