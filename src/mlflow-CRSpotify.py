@@ -18,7 +18,7 @@ import mlflow
 import mlflow.sklearn
 
 # Importar data
-df = pd.read_csv("df_spotify.csv", sep='|')
+df = pd.read_csv("../data/df_spotify.csv", sep='|')
 
 # Metrica
 def average_relevance_score(recommendations, attribute_weights):
