@@ -13,6 +13,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 
+#Importe MLFlow para registrar los experimentos, el regresor de bosques aleatorios y la métrica de error cuadrático medio
+import mlflow
+import mlflow.sklearn
+
 # Importar data
 df = pd.read_csv("df_spotify.csv", sep='|')
 
@@ -74,3 +78,13 @@ def custom_recommendation_model(df, generos_usuario, seleccion_usuario, n_compon
     recomendaciones = subset_df.iloc[indices_recomendaciones].head(top_n)
     
     return recomendaciones
+
+# defina el servidor para llevar el registro de modelos y artefactos
+#mlflow.set_tracking_uri('http://localhost:5000')
+# registre el experimento
+experiment = mlflow.set_experiment("sklearn-spotify")
+
+# Aquí se ejecuta MLflow sin especificar un nombre o id del experimento. MLflow los crea un experimento para este cuaderno por defecto y guarda las características del experimento y las métricas definidas. 
+# Para ver el resultado de las corridas haga click en Experimentos en el menú izquierdo. 
+with mlflow.start_run(experiment_id=experiment.experiment_id):
+    pass
