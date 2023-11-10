@@ -87,4 +87,25 @@ experiment = mlflow.set_experiment("sklearn-spotify")
 # Aquí se ejecuta MLflow sin especificar un nombre o id del experimento. MLflow los crea un experimento para este cuaderno por defecto y guarda las características del experimento y las métricas definidas. 
 # Para ver el resultado de las corridas haga click en Experimentos en el menú izquierdo. 
 with mlflow.start_run(experiment_id=experiment.experiment_id):
-    pass
+    
+    # Pesos de la metrica
+    attribute_weights = {
+        'valence': 0.3,
+        'danceability': 0.2,
+        'energy': 0.2,
+        'acousticness': 0.1,
+        'instrumentalness': 0.2
+    }
+
+    # defina los parámetros del modelo
+    gener_user = ['Rock'] # Pop - Jazz - Hip-Hop/Rap - Rock - Soul - Clásica - Country - Metal - Folk - Indie/Alternativo - R&B - Punk - Electrónica - Reggaetón - Dancehall - Blues - Gospel
+    sentm_user = 'Feliz' # Melancolía - Amor - Otro - Euforia - Felicidad - Tristeza - Energía - Relajación - Ira
+    n_compt = 10
+    scaling_meth = "RobustScaler" # StandardScaler - MinMaxScaler - RobustScaler
+    top_n = 10
+
+    # Modelo con los parametros relaciones y ejecución de la recomendación
+    recomendaciones = custom_recommendation_model(df, generos_usuario = gener_user, seleccion_usuario = sentm_user, n_components = n_compt, scaling_method = scaling_meth, top_n = top_n)
+  
+    # Calcula la métrica de relevancia promedio
+    average_relevance = average_relevance_score(recomendaciones, attribute_weights)
