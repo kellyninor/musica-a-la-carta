@@ -87,7 +87,7 @@ experiment = mlflow.set_experiment("sklearn-spotify")
 # Aquí se ejecuta MLflow sin especificar un nombre o id del experimento. MLflow los crea un experimento para este cuaderno por defecto y guarda las características del experimento y las métricas definidas. 
 # Para ver el resultado de las corridas haga click en Experimentos en el menú izquierdo. 
 with mlflow.start_run(experiment_id=experiment.experiment_id):
-    
+
     # Pesos de la metrica
     attribute_weights = {
         'valence': 0.3,
@@ -107,5 +107,18 @@ with mlflow.start_run(experiment_id=experiment.experiment_id):
     # Modelo con los parametros relaciones y ejecución de la recomendación
     recomendaciones = custom_recommendation_model(df, generos_usuario = gener_user, seleccion_usuario = sentm_user, n_components = n_compt, scaling_method = scaling_meth, top_n = top_n)
   
+    # Registre los parámetros
+    mlflow.log_param("generos_user", gener_user)
+    mlflow.log_param("sentimiento_user", sentm_user)
+    mlflow.log_param("n_components", n_compt)
+    mlflow.log_param("scaling_method", scaling_meth)
+    mlflow.log_param("top_n", top_n)
+  
+    # Registre el modelo
+    mlflow.sklearn.log_model(custom_recommendation_model, "recomend-spotify-model")
+  
+    # Cree y registre la métrica de interés
     # Calcula la métrica de relevancia promedio
     average_relevance = average_relevance_score(recomendaciones, attribute_weights)
+    mlflow.log_metric("average_relevance", average_relevance)
+    print(average_relevance)
