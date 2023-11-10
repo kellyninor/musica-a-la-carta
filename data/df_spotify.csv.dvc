@@ -1,0 +1,5 @@
+outs:
+- md5: 97e02b238c993caeef58cf716f2c847b
+  size: 37579054
+  hash: md5
+  path: df_spotify.csv
