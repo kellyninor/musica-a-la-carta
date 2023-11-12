@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Nov 11 21:02:20 2023
@@ -12,13 +12,14 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
+from scipy.sparse import csr_matrix
 
 #Importe MLFlow para registrar los experimentos, el regresor de bosques aleatorios y la métrica de error cuadrático medio
 import mlflow
 import mlflow.sklearn
 
 # Importar data
-df = pd.read_csv("../data/df_spotify.csv", sep='|')
+df = pd.read_csv("df_spotify.csv", sep='|')
 
 # Metrica
 def average_relevance_score(recommendations, attribute_weights):
@@ -51,7 +52,12 @@ def average_relevance_score(recommendations, attribute_weights):
 # Modelo
 def custom_recommendation_model(df, generos_usuario, seleccion_usuario, n_components, scaling_method, top_n):
     
-    subset_df = df[(df['genero_principal'].isin(generos_usuario)) | (df['sentimiento'] == seleccion_usuario)]
+    subset_df = df[(df['genero_principal'].isin(generos_usuario)) & (df['sentimiento'] == seleccion_usuario)]
+    if subset_df.shape[0] > 0:
+        pass
+    else: 
+        subset_df = df[(df['genero_principal'].isin(generos_usuario)) | (df['sentimiento'] == seleccion_usuario)]
+
     atributos_deseados = ['valence', 'year', 'acousticness', 'danceability', 'energy', 'explicit',
                          'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', 'tempo']
     
@@ -73,7 +79,11 @@ def custom_recommendation_model(df, generos_usuario, seleccion_usuario, n_compon
     svd = TruncatedSVD(n_components=n_components)
     atributos_latentes = svd.fit_transform(atributos)
     
-    similitud = cosine_similarity(atributos_latentes) if n_components < min(atributos.shape) else cosine_similarity(atributos)
+    # Convertir a matriz dispersa
+    atributos_latentes_sparse = csr_matrix(atributos_latentes)
+    
+    # Calcular similitud del coseno
+    similitud = cosine_similarity(atributos_latentes_sparse) if n_components < min(atributos.shape) else cosine_similarity(atributos)
     indices_recomendaciones = similitud.sum(axis=0).argsort()[::-1]
     recomendaciones = subset_df.iloc[indices_recomendaciones].head(top_n)
     
@@ -98,16 +108,16 @@ with mlflow.start_run(experiment_id=experiment.experiment_id):
     }
 
     # defina los parámetros del modelo
-    gener_user = ['Rock'] # Pop - Jazz - Hip-Hop/Rap - Rock - Soul - Clásica - Country - Metal - Folk - Indie/Alternativo - R&B - Punk - Electrónica - Reggaetón - Dancehall - Blues - Gospel
-    sentm_user = 'Feliz' # Melancolía - Amor - Otro - Euforia - Felicidad - Tristeza - Energía - Relajación - Ira
+    gener_user = ['Otro'] # Pop - Jazz - Hip-Hop/Rap - Rock - Soul - Clásica - Country - Metal - Folk - Indie/Alternativo - R&B - Punk - Electrónica - Reggaetón - Dancehall - Blues - Gospel
+    sentm_user = 'Euforia' # Melancolía - Amor - Otro - Euforia - Felicidad - Tristeza - Energía - Relajación - Ira
     n_compt = 10
     scaling_meth = "RobustScaler" # StandardScaler - MinMaxScaler - RobustScaler
     top_n = 10
-
+    
     # Modelo con los parametros relaciones y ejecución de la recomendación
     recomendaciones = custom_recommendation_model(df, generos_usuario = gener_user, seleccion_usuario = sentm_user, n_components = n_compt, scaling_method = scaling_meth, top_n = top_n)
-  
-    # Registre los parámetros
+        
+   # Registre los parámetros
     mlflow.log_param("generos_user", gener_user)
     mlflow.log_param("sentimiento_user", sentm_user)
     mlflow.log_param("n_components", n_compt)
@@ -122,3 +132,37 @@ with mlflow.start_run(experiment_id=experiment.experiment_id):
     average_relevance = average_relevance_score(recomendaciones, attribute_weights)
     mlflow.log_metric("average_relevance", average_relevance)
     print(average_relevance)
+
+
+def system_cosine_sim(generos_usuario, seleccion_usuario):
+    subset_df = df[(df['genero_principal'].isin(generos_usuario)) | (df['sentimiento'] == seleccion_usuario)]
+    atributos_deseados = ['valence', 'year', 'acousticness', 'danceability', 'energy', 'explicit',
+     'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', 'tempo']
+   
+    atributos = subset_df[atributos_deseados].values
+    similitud = cosine_similarity(atributos)
+    
+    indices_recomendaciones = similitud.sum(axis=0).argsort()[::-1]
+    recomendaciones = subset_df.iloc[indices_recomendaciones].head(10)
+    return recomendaciones
+
+
+def system_svd(generos_usuario, seleccion_usuario):
+    subset_df = df[(df['genero_principal'].isin(generos_usuario)) | (df['sentimiento'] == seleccion_usuario)]
+    atributos_deseados = ['valence', 'year', 'acousticness', 'danceability', 'energy', 'explicit',
+     'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', 'tempo']
+    atributos = subset_df[atributos_deseados].values
+
+    scaler = StandardScaler() # Estandarización
+    atributos_estandarizados = scaler.fit_transform(atributos)
+
+    n_components = min(atributos.shape[0], atributos.shape[1]) - 1 # Componentes
+    svd = TruncatedSVD(n_components=n_components) # Modelo
+    svd.fit(atributos_estandarizados)
+
+    atributos_latentes = svd.transform(atributos_estandarizados)
+    similitud = cosine_similarity(atributos_latentes)
+
+    indices_recomendaciones = similitud.sum(axis=0).argsort()[::-1]
+    recomendaciones = subset_df.iloc[indices_recomendaciones].head(10)
+    return recomendaciones
