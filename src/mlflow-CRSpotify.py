@@ -19,7 +19,7 @@ import mlflow
 import mlflow.sklearn
 
 # Importar data
-df = pd.read_csv("df_spotify.csv", sep='|')
+df = pd.read_csv("./model/datasets/df_spotify.csv", sep='|')
 
 # Metrica
 def average_relevance_score(recommendations, attribute_weights):
@@ -108,8 +108,8 @@ with mlflow.start_run(experiment_id=experiment.experiment_id):
     }
 
     # defina los parámetros del modelo
-    gener_user = ['Otro'] # Pop - Jazz - Hip-Hop/Rap - Rock - Soul - Clásica - Country - Metal - Folk - Indie/Alternativo - R&B - Punk - Electrónica - Reggaetón - Dancehall - Blues - Gospel
-    sentm_user = 'Euforia' # Melancolía - Amor - Otro - Euforia - Felicidad - Tristeza - Energía - Relajación - Ira
+    gener_user = ['Pop'] # Pop - Jazz - Hip-Hop/Rap - Rock - Soul - Clásica - Country - Metal - Folk - Indie/Alternativo - R&B - Punk - Electrónica - Reggaetón - Dancehall - Blues - Gospel
+    sentm_user = 'Melancolía' # Melancolía - Amor - Otro - Euforia - Felicidad - Tristeza - Energía - Relajación - Ira
     n_compt = 10
     scaling_meth = "RobustScaler" # StandardScaler - MinMaxScaler - RobustScaler
     top_n = 10
@@ -132,6 +132,9 @@ with mlflow.start_run(experiment_id=experiment.experiment_id):
     average_relevance = average_relevance_score(recomendaciones, attribute_weights)
     mlflow.log_metric("average_relevance", average_relevance)
     print(average_relevance)
+
+    print("Recomendaciones:")
+    print(recomendaciones)
 
 
 def system_cosine_sim(generos_usuario, seleccion_usuario):

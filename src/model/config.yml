@@ -1,0 +1,32 @@
+# Nombre del paquete
+package_name: recommendation_model
+
+atributos_deseados:
+  - valence
+  - year
+  - acousticness
+  - danceability
+  - energy
+  - explicit
+  - instrumentalness
+  - key
+  - liveness
+  - loudness
+  - mode
+  - speechiness
+  - tempo
+
+scaling_method: RobustScaler
+
+generos_usuario:
+  - Rock
+
+sentimiento_usuario: Felicidad
+
+n_components: 10
+
+top_n: 10
+
+pipeline_save_file: recommendation_model
+
+data_file: df_spotify.csv
