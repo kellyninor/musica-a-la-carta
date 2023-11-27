@@ -34,7 +34,7 @@ function confirmarSeleccion() {
   
 function enviarSentimientoAPI(sentimiento) {
     // URL de la REST API donde enviar el sentimiento
-    var urlAPI = 'http://127.0.0.1:5000/api/enviar-sentimiento';
+    var urlAPI = 'http://52.3.220.233:5000/api/enviar-sentimiento';
   
     // Objeto de opciones para la solicitud
     var opciones = {
@@ -69,7 +69,7 @@ function seleccionarGenero(genero, boton) {
         // Si ya está seleccionado, quitarlo de la lista y restaurar el color
         generosSeleccionados = generosSeleccionados.filter(item => item !== genero);
         boton.style.backgroundColor = "";
-    } else if (generosSeleccionados.length < 3) {
+    } else if (generosSeleccionados.length < 2) {
         // Si no está seleccionado y hay menos de tres seleccionados, agregarlo a la lista y cambiar el color
         generosSeleccionados.push(genero);
         boton.style.backgroundColor = "cornflowerblue";
@@ -77,7 +77,7 @@ function seleccionarGenero(genero, boton) {
 
     // Habilitar o deshabilitar el botón "Generar Playlist" según la cantidad de elementos seleccionados
     var generarPlaylistBtn = document.getElementById('generarPlaylist');
-    generarPlaylistBtn.disabled = generosSeleccionados.length !== 3;
+    generarPlaylistBtn.disabled = generosSeleccionados.length !== 2;
 }
 
 function generarListaGeneros() {
@@ -88,7 +88,7 @@ function generarListaGeneros() {
 
 function enviarGenerosAPI(generos) {
     // URL de la REST API donde enviar la playlist
-    var urlAPI = 'http://127.0.0.1:5000/api/enviar-generos';
+    var urlAPI = 'http://52.3.220.233:5000/api/enviar-generos';
 
     // Objeto de opciones para la solicitud
     var opciones = {
@@ -133,6 +133,7 @@ function meGusta() {
   // Aquí puedes agregar la lógica que desees al hacer click en "Me Gusta"
   // Por ejemplo, mostrar el mensaje en la tercera columna.
   document.getElementById('mensajeColumna').style.display = 'block';
+  document.getElementById("dameotra").setAttribute("disabled","");
 }
 
 function generarPlaylist() {
@@ -142,7 +143,7 @@ function generarPlaylist() {
   document.getElementById('mensajeColumna').style.display = 'none';
 
    // URL de la REST API donde enviar la playlist
-   var urlAPI = 'http://127.0.0.1:5000/api/generar-playlist';
+   var urlAPI = 'http://52.3.220.233:5000/api/generar-playlist';
 
    // Objeto de opciones para la solicitud
    var opciones = {
@@ -170,12 +171,16 @@ function generarPlaylist() {
             window.location.href = '/';
           }
 
-            var playlistContainer = document.getElementById('playlistholder');
+          var playlistContainer = document.getElementById('playlistholder');
          
+          // Convertir saltos de línea en <br> para que se muestren en HTML
+          var playlistHTML = datos.playlist.replace(/\n/g, '<br>');
+    
+          // Aplicar estilo de justificación a la izquierda al contenedor
+          playlistContainer.style.textAlign = 'left'; 
           
-
-            // Display the playlist as text within the container
-            playlistContainer.innerHTML = datos.playlist;
+          // Display the playlist as HTML within the container
+          playlistContainer.innerHTML = playlistHTML;
            
        })
        .catch(function (error) {
